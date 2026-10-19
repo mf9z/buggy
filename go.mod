@@ -1,4 +1,4 @@
-module github.com/rohan/buggy
+module github.com/mf9z/buggy
 
 go 1.26.0
 

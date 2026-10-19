@@ -8,8 +8,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/rohan/buggy/internal/config"
-	"github.com/rohan/buggy/internal/provider"
+	"github.com/mf9z/buggy/internal/config"
+	"github.com/mf9z/buggy/internal/provider"
 )
 
 func TestParseFindings(t *testing.T) {

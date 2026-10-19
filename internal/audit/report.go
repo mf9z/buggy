@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-// Markdown renders the report as a shareable markdown document.
 func (r *Report) Markdown() string {
 	var b strings.Builder
 	high, med, low := r.Counts()
@@ -50,12 +49,10 @@ func (r *Report) Markdown() string {
 	return b.String()
 }
 
-// JSON renders the report as indented JSON.
 func (r *Report) JSON() ([]byte, error) {
 	return json.MarshalIndent(r, "", "  ")
 }
 
-// Location is "file:line" or just "file".
 func (f Finding) Location() string {
 	if f.Line > 0 {
 		return fmt.Sprintf("%s:%d", f.File, f.Line)

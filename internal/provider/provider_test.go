@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/rohan/buggy/internal/config"
+	"github.com/mf9z/buggy/internal/config"
 )
 
 func collect(t *testing.T, p Provider, req Request) (string, string) {

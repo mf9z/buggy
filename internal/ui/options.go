@@ -12,11 +12,10 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rohan/buggy/internal/config"
-	"github.com/rohan/buggy/internal/provider"
+	"github.com/mf9z/buggy/internal/config"
+	"github.com/mf9z/buggy/internal/provider"
 )
 
-// optionsMsg marks async messages owned by the options screen.
 type optionsMsg interface{ options() }
 
 type modelsMsg struct {
@@ -50,7 +49,7 @@ type optRow struct {
 	label  string
 	kind   rowKind
 	value  func() string
-	set    func(string) // text, secret, number, model
+	set    func(string)  // text, secret, number, model
 	cycle  func(dir int) // cycle, toggle
 	action func() tea.Cmd
 	hint   string
@@ -135,7 +134,6 @@ func maskKey(k string) string {
 	return k[:4] + strings.Repeat("•", 8) + k[len(k)-4:]
 }
 
-// build regenerates rows, since visible settings depend on mode/provider.
 func (m *optionsModel) build() {
 	c := m.cfg()
 	var rows []optRow
@@ -285,7 +283,7 @@ func (m *optionsModel) build() {
 	}
 	rows = append(rows, optRow{
 		label: "Test connection", kind: rowAction,
-		value: func() string { return faintStyle.Render("send a tiny request") },
+		value:  func() string { return faintStyle.Render("send a tiny request") },
 		action: func() tea.Cmd { return m.test() },
 	})
 
@@ -523,7 +521,6 @@ func (m *optionsModel) openPicker(row optRow) tea.Cmd {
 	})
 }
 
-// providerForListing builds a provider even when no model is chosen yet.
 func (m *optionsModel) providerForListing() (provider.Provider, error) {
 	c := *m.cfg()
 	if c.Mode == config.ModeBYOK {

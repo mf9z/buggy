@@ -10,8 +10,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
-// The theme is the terminal's own black and white; color is reserved for the
-// title and severities.
+// Plain terminal colors; only the title and severities get color.
 var (
 	colorBlue   = lipgloss.Color("33")
 	colorRed    = lipgloss.Color("196")
@@ -24,7 +23,6 @@ var (
 	faintStyle  = lipgloss.NewStyle().Faint(true)
 	errStyle    = lipgloss.NewStyle().Foreground(colorRed)
 	okStyle     = lipgloss.NewStyle().Foreground(colorGreen)
-	selStyle    = lipgloss.NewStyle().Bold(true).Reverse(true)
 	rootPadding = lipgloss.NewStyle().Padding(1, 2)
 )
 
@@ -42,7 +40,6 @@ func severityStyle(sev string) lipgloss.Style {
 	return lipgloss.NewStyle().Foreground(severityColor(sev)).Bold(true)
 }
 
-// badge renders a fixed-width severity label, e.g. "HIGH  ".
 func badge(sev string) string {
 	return severityStyle(sev).Render(padRight(strings.ToUpper(sev), 6))
 }
@@ -54,7 +51,6 @@ func padRight(s string, n int) string {
 	return s
 }
 
-// truncate shortens s to n display cells, preserving ANSI styling.
 func truncate(s string, n int) string {
 	if n <= 1 {
 		return ""
@@ -69,7 +65,6 @@ func plural(n int, word string) string {
 	return fmt.Sprintf("%d %ss", n, word)
 }
 
-// header is the screen title line: "buggy" in blue plus a section name.
 func header(section string) string {
 	h := titleStyle.Render("buggy")
 	if section != "" {
@@ -88,7 +83,6 @@ func help(pairs ...string) string {
 
 var sevTag = regexp.MustCompile(`\[(HIGH|MEDIUM|LOW|CRITICAL)\]`)
 
-// colorizeTags paints [HIGH]/[MEDIUM]/[LOW] tags in model replies.
 func colorizeTags(s string) string {
 	return sevTag.ReplaceAllStringFunc(s, func(t string) string {
 		sev := strings.ToLower(strings.Trim(t, "[]"))

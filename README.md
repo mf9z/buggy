@@ -1,8 +1,25 @@
+<div align="center">
+
 # buggy
 
-Find bugs, security holes and slow code in your project from the terminal.
-Bring your own API key, or proxy through a tool you're already logged into,
-like Claude Code.
+**Find bugs, security holes and slow code in your project from the terminal.**
+
+Bring your own API key, or proxy through a tool you're already logged into, like Claude Code.
+
+[![CI](https://github.com/mf9z/buggy/actions/workflows/ci.yml/badge.svg)](https://github.com/mf9z/buggy/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/mf9z/buggy?logo=go&logoColor=white)](https://github.com/mf9z/buggy/blob/main/go.mod)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mf9z/buggy)](https://goreportcard.com/report/github.com/mf9z/buggy)
+[![Last Commit](https://img.shields.io/github/last-commit/mf9z/buggy)](https://github.com/mf9z/buggy/commits/main)
+[![Stars](https://img.shields.io/github/stars/mf9z/buggy?style=flat)](https://github.com/mf9z/buggy/stargazers)
+
+![Anthropic](https://img.shields.io/badge/Anthropic-191919?logo=anthropic&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
+![OpenRouter](https://img.shields.io/badge/OpenRouter-6566F1)
+![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?logo=nvidia&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini-8E75B2?logo=googlegemini&logoColor=white)
+![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?logo=claude&logoColor=white)
+
+</div>
 
 ```
 buggy
@@ -20,8 +37,14 @@ Findings are colored by severity: **red** for high, **orange** for medium,
 ## Install
 
 ```sh
+go install github.com/mf9z/buggy@latest
+```
+
+Or build from source:
+
+```sh
+git clone https://github.com/mf9z/buggy && cd buggy
 make build        # ./buggy
-make install      # into $GOPATH/bin
 ```
 
 Needs Go 1.26+ to build. The result is a single static binary with no runtime dependencies.

@@ -5,8 +5,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rohan/buggy/internal/config"
-	"github.com/rohan/buggy/internal/provider"
+	"github.com/mf9z/buggy/internal/config"
+	"github.com/mf9z/buggy/internal/provider"
 )
 
 type Screen int
@@ -24,7 +24,6 @@ func navigate(to Screen) tea.Cmd {
 	return func() tea.Msg { return navigateMsg{to} }
 }
 
-// App is the root model; it owns shared state and routes to screens.
 type App struct {
 	cfg    *config.Config
 	root   string
@@ -38,7 +37,6 @@ type App struct {
 	options *optionsModel
 }
 
-// Run starts the interactive UI on the given screen.
 func Run(cfg *config.Config, root string, start Screen) error {
 	a := &App{cfg: cfg, root: root, width: 80, height: 24}
 	a.menu = newMenu(a)
@@ -59,7 +57,6 @@ func Run(cfg *config.Config, root string, start Screen) error {
 
 func (a *App) Init() tea.Cmd { return nil }
 
-// innerSize is the drawable area inside the root padding.
 func (a *App) innerSize() (int, int) {
 	w, h := a.width-4, a.height-2
 	if w < 20 {
@@ -94,8 +91,8 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Async results are routed to their owner even when it isn't visible, so
-	// a running audit keeps going while you chat.
+	// Route async results to their owner even when hidden, so a running
+	// audit keeps going while you chat.
 	switch msg.(type) {
 	case chatMsg:
 		if a.chat != nil {
@@ -166,7 +163,6 @@ func (a *App) View() string {
 	return rootPadding.Render(v)
 }
 
-// newProvider builds the provider for the current settings.
 func (a *App) newProvider() (provider.Provider, error) {
 	return provider.New(a.cfg)
 }
@@ -175,7 +171,6 @@ func (a *App) describe() string {
 	return provider.Describe(a.cfg)
 }
 
-// shortPath abbreviates the home directory as ~.
 func shortPath(p, home string) string {
 	if home != "" && strings.HasPrefix(p, home) {
 		return "~" + strings.TrimPrefix(p, home)

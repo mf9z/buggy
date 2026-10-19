@@ -12,10 +12,9 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rohan/buggy/internal/audit"
+	"github.com/mf9z/buggy/internal/audit"
 )
 
-// auditMsg marks async messages owned by the audit screen.
 type auditMsg interface{ audit() }
 
 type auditProgressMsg struct {
@@ -145,15 +144,7 @@ func (m *auditModel) update(msg tea.Msg) tea.Cmd {
 }
 
 func wrapAuditSpin(cmd tea.Cmd) tea.Cmd {
-	if cmd == nil {
-		return nil
-	}
-	return func() tea.Msg {
-		if t, ok := cmd().(spinner.TickMsg); ok {
-			return auditSpinTick{t}
-		}
-		return nil
-	}
+	return wrapTick(cmd, func(t spinner.TickMsg) tea.Msg { return auditSpinTick{t} })
 }
 
 func (m *auditModel) keyInput(k tea.KeyMsg) tea.Cmd {
@@ -234,7 +225,6 @@ func (m *auditModel) start() tea.Cmd {
 	return tea.Batch(waitStream(ch), wrapAuditSpin(m.spin.Tick))
 }
 
-// visible returns the indices of findings that pass the filters.
 func (m *auditModel) visible() []int {
 	if m.rep == nil {
 		return nil
@@ -403,7 +393,6 @@ func (m *auditModel) viewRunning() string {
 			b.WriteString(faintStyle.Render("  · " + truncate(a, m.width-4)))
 			b.WriteString("\n")
 		}
-		// Most recent findings, newest last.
 		room := m.height - 12 - len(p.Active)
 		if room > 0 && len(m.live) > 0 {
 			b.WriteString("\n")
@@ -460,7 +449,6 @@ func (m *auditModel) viewResults() string {
 		if m.cursor >= len(vis) {
 			m.cursor = len(vis) - 1
 		}
-		// Render every row, then window around the cursor.
 		var lines []string
 		selStart, selEnd := 0, 0
 		for row, i := range vis {

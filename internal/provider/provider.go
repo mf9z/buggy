@@ -1,5 +1,4 @@
-// Package provider talks to LLM backends: BYOK HTTP APIs and proxied agent
-// CLIs such as Claude Code.
+// Package provider talks to BYOK HTTP APIs and proxied agent CLIs.
 package provider
 
 import (
@@ -9,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rohan/buggy/internal/config"
+	"github.com/mf9z/buggy/internal/config"
 )
 
 // Purpose tells a backend what the request is for. Agent CLIs get read-only
@@ -30,29 +29,22 @@ type Request struct {
 	System   string
 	Messages []Message
 	Purpose  Purpose
-	// Dir is the project root, used as the working directory for agent CLIs.
-	Dir string
+	Dir      string
 }
 
-// Event is a streamed piece of a response. Text is appended to the reply;
-// Status is transient progress (e.g. "reading main.go").
+// Event carries reply text or a transient status such as "reading files".
 type Event struct {
 	Text   string
 	Status string
 }
 
 type Provider interface {
-	// Name is a short human label, e.g. "anthropic" or "claude-code".
 	Name() string
 	Model() string
-	// Stream sends the request and calls emit for each event. It returns the
-	// full reply text.
 	Stream(ctx context.Context, req Request, emit func(Event)) (string, error)
-	// Models lists model IDs the backend offers, when it can tell.
 	Models(ctx context.Context) ([]string, error)
 }
 
-// Kind is the wire protocol of a BYOK provider.
 type Kind string
 
 const (
@@ -60,7 +52,6 @@ const (
 	KindOpenAI    Kind = "openai"
 )
 
-// Spec describes a BYOK provider.
 type Spec struct {
 	ID           string
 	Name         string
@@ -69,7 +60,7 @@ type Spec struct {
 	EnvKey       string
 	DefaultModel string
 	// MaxTokens is sent as the output cap; 0 leaves it to the provider.
-	MaxTokens int
+	MaxTokens   int
 	KeyOptional bool
 }
 
@@ -88,10 +79,8 @@ var Catalog = []Spec{
 	{ID: "custom", Name: "Custom (OpenAI-compatible)", Kind: KindOpenAI, EnvKey: "BUGGY_API_KEY", KeyOptional: true},
 }
 
-// ProxyBackends lists the proxy options in display order.
 var ProxyBackends = []string{"claude-code", "codex", "gemini-cli", "command", "http"}
 
-// ProxyBackendLabel is a human description of a proxy backend.
 func ProxyBackendLabel(id string) string {
 	switch id {
 	case "claude-code":
@@ -117,7 +106,7 @@ func LookupSpec(id string) (Spec, bool) {
 	return Spec{}, false
 }
 
-// ResolveKey returns the API key for a provider: config first, then env.
+// ResolveKey prefers the configured key and falls back to the env var.
 func ResolveKey(spec Spec, pc *config.ProviderConfig) (key, source string) {
 	if pc != nil && pc.APIKey != "" {
 		return pc.APIKey, "config"
@@ -130,7 +119,6 @@ func ResolveKey(spec Spec, pc *config.ProviderConfig) (key, source string) {
 	return "", ""
 }
 
-// New builds the provider selected by the config.
 func New(cfg *config.Config) (Provider, error) {
 	if cfg.Mode == config.ModeProxy {
 		return newProxy(cfg.Proxy)
@@ -186,7 +174,6 @@ func newProxy(pc config.ProxyConfig) (Provider, error) {
 	return nil, fmt.Errorf("unknown proxy backend %q", pc.Backend)
 }
 
-// Describe is a one-line summary of the active backend for status bars.
 func Describe(cfg *config.Config) string {
 	if cfg.Mode == config.ModeProxy {
 		m := cfg.Proxy.Model
@@ -209,8 +196,7 @@ func firstNonEmpty(vals ...string) string {
 	return ""
 }
 
-// Flatten renders a multi-turn conversation as one prompt, for backends that
-// only accept a single input (agent CLIs, shell commands).
+// Flatten renders a conversation as one prompt for single-input backends.
 func Flatten(msgs []Message) string {
 	if len(msgs) == 1 {
 		return msgs[0].Content

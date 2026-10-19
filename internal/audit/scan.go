@@ -1,5 +1,4 @@
-// Package audit scans a project and asks a model to find bugs, security
-// issues and performance problems in it.
+// Package audit scans a project and asks a model for bugs in it.
 package audit
 
 import (
@@ -14,14 +13,12 @@ import (
 	"unicode/utf8"
 )
 
-// File is a source file selected for auditing.
 type File struct {
 	Path    string // slash-separated, relative to the root
 	Content string
 	Lines   int
 }
 
-// Skip records a file that was left out and why.
 type Skip struct {
 	Path   string
 	Reason string
@@ -47,7 +44,6 @@ var ignoredFiles = map[string]bool{
 	"buggy-report.md": true, "buggy-report.json": true,
 }
 
-// skippedExts are binary, generated, or prose formats with nothing to audit.
 var skippedExts = map[string]bool{
 	".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".webp": true, ".ico": true,
 	".bmp": true, ".tiff": true, ".svg": true, ".pdf": true, ".zip": true, ".gz": true,
@@ -62,12 +58,10 @@ var skippedExts = map[string]bool{
 	".pem": true, ".key": true, ".crt": true, ".p12": true, ".pfx": true, ".ipynb": true,
 }
 
-// ScanOptions limits what gets read.
 type ScanOptions struct {
 	MaxFileBytes int64
 }
 
-// Scan walks root and returns auditable text files in a stable order.
 func Scan(root string, opt ScanOptions) ([]File, []Skip, error) {
 	root, err := filepath.Abs(root)
 	if err != nil {
@@ -268,8 +262,7 @@ func (ig *ignore) match(rel string, isDir bool) bool {
 	return matched
 }
 
-// List returns up to limit project file paths (without reading them), using
-// the same ignore rules as Scan. truncated reports whether more exist.
+// List returns paths without reading files, using the same rules as Scan.
 func List(root string, limit int) (paths []string, truncated bool) {
 	root, err := filepath.Abs(root)
 	if err != nil {

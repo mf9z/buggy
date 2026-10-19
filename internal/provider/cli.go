@@ -14,9 +14,8 @@ import (
 	"strings"
 )
 
-// cliBridge proxies requests through an agent CLI the user is already logged
-// into (Claude Code, Codex, Gemini CLI) or any shell command. This lets people
-// use their existing subscription instead of an API key.
+// cliBridge runs an agent CLI the user is already logged into, so they can
+// use a subscription instead of an API key.
 type cliBridge struct {
 	backend string
 	model   string
@@ -32,8 +31,6 @@ func (c *cliBridge) Model() string {
 	return c.model
 }
 
-// readOnlyTools are the Claude Code tools allowed during chat so the agent
-// can explore the project without changing it.
 const readOnlyTools = "Read,Grep,Glob"
 
 func (c *cliBridge) Models(ctx context.Context) ([]string, error) {
@@ -161,7 +158,6 @@ func lookPath(name, hint string) (string, error) {
 	return p, nil
 }
 
-// parseClaudeStream reads Claude Code's stream-json output.
 func parseClaudeStream(r io.Reader, emit func(Event)) (string, error) {
 	var out strings.Builder
 	var result string
@@ -264,7 +260,6 @@ func toolStatus(name string) string {
 	return "using " + name
 }
 
-// parseCodexStream reads `codex exec --json` JSONL events.
 func parseCodexStream(r io.Reader, emit func(Event)) (string, error) {
 	var out strings.Builder
 	err := scanLines(r, func(line []byte) error {

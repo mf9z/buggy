@@ -15,12 +15,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/rohan/buggy/internal/audit"
-	"github.com/rohan/buggy/internal/config"
-	"github.com/rohan/buggy/internal/provider"
+	"github.com/mf9z/buggy/internal/audit"
+	"github.com/mf9z/buggy/internal/config"
+	"github.com/mf9z/buggy/internal/provider"
 )
 
-// chatMsg marks async messages owned by the chat screen.
 type chatMsg interface{ chat() }
 
 type streamEventMsg struct {
@@ -33,7 +32,6 @@ type streamDoneMsg struct {
 	gen  int
 	text string
 	err  error
-	took time.Duration
 }
 
 func (streamEventMsg) chat() {}
@@ -126,7 +124,6 @@ func (m *chatModel) focus() tea.Cmd {
 func (m *chatModel) resize(w, h int) {
 	m.width, m.height = w, h
 	m.input.SetWidth(w)
-	// header(1) + gap(1) + viewport + gap(1) + status(1) + input(3) + help(1)
 	vh := h - 8
 	if vh < 3 {
 		vh = 3
@@ -176,12 +173,17 @@ func (m *chatModel) update(msg tea.Msg) tea.Cmd {
 }
 
 func wrapSpin(cmd tea.Cmd) tea.Cmd {
+	return wrapTick(cmd, func(t spinner.TickMsg) tea.Msg { return spinTick{t} })
+}
+
+// wrapTick tags spinner ticks so the app can route them to their screen.
+func wrapTick(cmd tea.Cmd, tag func(spinner.TickMsg) tea.Msg) tea.Cmd {
 	if cmd == nil {
 		return nil
 	}
 	return func() tea.Msg {
 		if t, ok := cmd().(spinner.TickMsg); ok {
-			return spinTick{t}
+			return tag(t)
 		}
 		return nil
 	}
@@ -348,7 +350,6 @@ func (m *chatModel) send(text string) tea.Cmd {
 	}
 	ch := make(chan tea.Msg, 256)
 	go func() {
-		start := time.Now()
 		text, err := prov.Stream(ctx, req, func(ev provider.Event) {
 			select {
 			case ch <- streamEventMsg{gen: gen, ev: ev, ch: ch}:
@@ -356,7 +357,7 @@ func (m *chatModel) send(text string) tea.Cmd {
 			}
 		})
 		select {
-		case ch <- streamDoneMsg{gen: gen, text: text, err: err, took: time.Since(start)}:
+		case ch <- streamDoneMsg{gen: gen, text: text, err: err}:
 		case <-ctx.Done():
 		}
 		close(ch)
@@ -424,8 +425,12 @@ func (m *chatModel) cancelStream(note string) {
 	m.render()
 }
 
-func (m *chatModel) info(s string)                  { m.entries = append(m.entries, chatEntry{kind: entryInfo, text: s}) }
-func (m *chatModel) errorf(f string, args ...any)   { m.entries = append(m.entries, chatEntry{kind: entryError, text: fmt.Sprintf(f, args...)}) }
+func (m *chatModel) info(s string) {
+	m.entries = append(m.entries, chatEntry{kind: entryInfo, text: s})
+}
+func (m *chatModel) errorf(f string, args ...any) {
+	m.entries = append(m.entries, chatEntry{kind: entryError, text: fmt.Sprintf(f, args...)})
+}
 
 func (m *chatModel) render() {
 	w := m.vp.Width

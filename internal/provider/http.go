@@ -26,8 +26,6 @@ var client = &http.Client{
 	},
 }
 
-// httpProvider speaks either the Anthropic Messages API or the OpenAI chat
-// completions API (which covers most other vendors).
 type httpProvider struct {
 	name      string
 	kind      Kind
@@ -73,7 +71,7 @@ func (p *httpProvider) setHeaders(r *http.Request) {
 		r.Header.Set("Authorization", "Bearer "+p.key)
 	}
 	if p.name == "openrouter" {
-		r.Header.Set("HTTP-Referer", "https://github.com/rohan/buggy")
+		r.Header.Set("HTTP-Referer", "https://github.com/mf9z/buggy")
 		r.Header.Set("X-Title", "buggy")
 	}
 }
@@ -212,8 +210,7 @@ func (p *httpProvider) streamOpenAI(ctx context.Context, req Request, emit func(
 	return out.String(), err
 }
 
-// post sends a JSON request, retrying rate limits and transient server errors
-// with backoff before any of the response has been consumed.
+// post retries rate limits and transient errors before the stream starts.
 func (p *httpProvider) post(ctx context.Context, url string, body any) (*http.Response, error) {
 	payload, err := json.Marshal(body)
 	if err != nil {
@@ -269,8 +266,8 @@ func readAPIError(name string, resp *http.Response) error {
 	defer resp.Body.Close()
 	data, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
 	var e struct {
-		Error json.RawMessage `json:"error"`
-		Message string        `json:"message"`
+		Error   json.RawMessage `json:"error"`
+		Message string          `json:"message"`
 	}
 	msg := strings.TrimSpace(string(data))
 	if json.Unmarshal(data, &e) == nil {
@@ -297,8 +294,6 @@ func readAPIError(name string, resp *http.Response) error {
 	return fmt.Errorf("%s: HTTP %d: %s", name, resp.StatusCode, msg)
 }
 
-// readSSE parses a server-sent-events stream, calling fn with each data
-// payload. fn returns done=true to stop early.
 func readSSE(r io.Reader, fn func(data []byte) (done bool, err error)) error {
 	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 0, 64<<10), 8<<20)

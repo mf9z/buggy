@@ -12,11 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rohan/buggy/internal/config"
-	"github.com/rohan/buggy/internal/provider"
+	"github.com/mf9z/buggy/internal/config"
+	"github.com/mf9z/buggy/internal/provider"
 )
 
-// Finding is one issue reported by the model.
 type Finding struct {
 	Severity    string `json:"severity"` // high, medium, low
 	Category    string `json:"category"` // security, performance, bug
@@ -27,7 +26,6 @@ type Finding struct {
 	Suggestion  string `json:"suggestion,omitempty"`
 }
 
-// Report is the result of an audit run.
 type Report struct {
 	Root     string        `json:"root"`
 	Backend  string        `json:"backend"`
@@ -40,7 +38,6 @@ type Report struct {
 	Duration time.Duration `json:"duration_ns"`
 }
 
-// Counts returns the number of findings per severity.
 func (r *Report) Counts() (high, medium, low int) {
 	for _, f := range r.Findings {
 		switch f.Severity {
@@ -55,7 +52,6 @@ func (r *Report) Counts() (high, medium, low int) {
 	return
 }
 
-// Progress is reported while an audit runs.
 type Progress struct {
 	Stage        string // "scanning", "auditing", "done"
 	Files        int
@@ -66,7 +62,6 @@ type Progress struct {
 	Err          error
 }
 
-// SeverityRank orders severities: high=3, medium=2, low=1.
 func SeverityRank(s string) int {
 	switch s {
 	case "high":
@@ -98,8 +93,7 @@ func (b batch) label() string {
 	return fmt.Sprintf("%s +%d more", b.chunks[0].path, len(b.chunks)-1)
 }
 
-// makeBatches packs files into prompts of roughly budget bytes, splitting
-// files that don't fit on their own into line ranges.
+// makeBatches packs files into ~budget-byte prompts, splitting big files by line.
 func makeBatches(files []File, budget int) []batch {
 	var chunks []chunk
 	for _, f := range files {
@@ -136,7 +130,6 @@ func makeBatches(files []File, budget int) []batch {
 	return out
 }
 
-// SystemPrompt builds the audit instructions for the enabled categories.
 func SystemPrompt(cfg config.AuditConfig) string {
 	var focus []string
 	if cfg.Security {
@@ -184,7 +177,6 @@ func renderBatch(project string, b batch) string {
 	return sb.String()
 }
 
-// Run audits root with the given provider.
 func Run(ctx context.Context, p provider.Provider, root string, cfg config.AuditConfig, progress func(Progress)) (*Report, error) {
 	started := time.Now()
 	if progress == nil {
@@ -267,8 +259,7 @@ func Run(ctx context.Context, p provider.Provider, root string, cfg config.Audit
 			for _, f := range found {
 				f = normalize(f, b)
 				if f.File != "" && !known[f.File] {
-					// Models occasionally mangle paths; keep the finding but
-					// anchor it to the batch when there's only one file.
+					// Models sometimes mangle paths; a one-file batch is unambiguous.
 					if len(b.chunks) == 1 {
 						f.File = b.chunks[0].path
 					}
@@ -322,7 +313,6 @@ func auditBatch(ctx context.Context, p provider.Provider, system, project, dir s
 			return found, nil
 		}
 		lastErr = perr
-		// Ask once more, reminding the model of the format.
 		req.Messages = append(req.Messages,
 			provider.Message{Role: "assistant", Content: text},
 			provider.Message{Role: "user", Content: `That was not valid JSON. Reply with only the JSON object {"findings":[...]} and nothing else.`},
@@ -331,8 +321,7 @@ func auditBatch(ctx context.Context, p provider.Provider, system, project, dir s
 	return nil, lastErr
 }
 
-// ParseFindings extracts the findings JSON from a model reply, tolerating
-// code fences and surrounding prose.
+// ParseFindings tolerates code fences and prose around the JSON.
 func ParseFindings(text string) ([]Finding, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {

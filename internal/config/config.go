@@ -13,7 +13,6 @@ const (
 	ModeProxy = "proxy"
 )
 
-// Config is the on-disk settings file (~/.config/buggy/config.json).
 type Config struct {
 	Mode      string                     `json:"mode"`
 	Provider  string                     `json:"provider"`
@@ -24,29 +23,22 @@ type Config struct {
 	path string
 }
 
-// ProviderConfig holds the per-provider BYOK settings.
 type ProviderConfig struct {
 	APIKey  string `json:"api_key,omitempty"`
 	Model   string `json:"model,omitempty"`
 	BaseURL string `json:"base_url,omitempty"`
 }
 
-// ProxyConfig routes requests through a local agent CLI or an HTTP proxy.
 type ProxyConfig struct {
-	// Backend is one of: claude-code, codex, gemini-cli, command, http.
 	Backend string `json:"backend"`
 	Model   string `json:"model,omitempty"`
-	// Command is a shell command used by the "command" backend. It receives
-	// the prompt on stdin and must write the reply to stdout.
+	// Command receives the prompt on stdin and writes the reply to stdout.
 	Command string `json:"command,omitempty"`
-	// URL, Format and APIKey configure the "http" backend (e.g. LiteLLM,
-	// claude-code-proxy, a corporate gateway). Format is openai or anthropic.
-	URL    string `json:"url,omitempty"`
-	Format string `json:"format,omitempty"`
-	APIKey string `json:"api_key,omitempty"`
+	URL     string `json:"url,omitempty"`
+	Format  string `json:"format,omitempty"`
+	APIKey  string `json:"api_key,omitempty"`
 }
 
-// AuditConfig tunes the audit engine.
 type AuditConfig struct {
 	Concurrency int    `json:"concurrency"`
 	MaxFileKB   int    `json:"max_file_kb"`
@@ -75,7 +67,6 @@ func Default() *Config {
 	}
 }
 
-// Path returns the settings file location, honoring $BUGGY_CONFIG.
 func Path() (string, error) {
 	if p := os.Getenv("BUGGY_CONFIG"); p != "" {
 		return p, nil
@@ -87,7 +78,6 @@ func Path() (string, error) {
 	return filepath.Join(dir, "buggy", "config.json"), nil
 }
 
-// Load reads the settings file, returning defaults if it does not exist.
 func Load() (*Config, error) {
 	p, err := Path()
 	if err != nil {
@@ -145,8 +135,7 @@ func (c *Config) normalize() {
 	}
 }
 
-// Save writes the settings file with owner-only permissions, since it can
-// contain API keys.
+// Save writes with owner-only permissions because the file holds API keys.
 func (c *Config) Save() error {
 	if c.path == "" {
 		p, err := Path()
@@ -171,7 +160,6 @@ func (c *Config) Save() error {
 
 func (c *Config) File() string { return c.path }
 
-// ProviderSettings returns (creating if needed) the settings for a provider.
 func (c *Config) ProviderSettings(id string) *ProviderConfig {
 	pc, ok := c.Providers[id]
 	if !ok || pc == nil {

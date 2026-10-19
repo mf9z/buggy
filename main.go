@@ -1,5 +1,3 @@
-// buggy finds bugs, security issues and performance problems in your code
-// using your own API key or a tool you're already logged into.
 package main
 
 import (
@@ -17,10 +15,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/term"
 
-	"github.com/rohan/buggy/internal/audit"
-	"github.com/rohan/buggy/internal/config"
-	"github.com/rohan/buggy/internal/provider"
-	"github.com/rohan/buggy/internal/ui"
+	"github.com/mf9z/buggy/internal/audit"
+	"github.com/mf9z/buggy/internal/config"
+	"github.com/mf9z/buggy/internal/provider"
+	"github.com/mf9z/buggy/internal/ui"
 )
 
 var version = "0.1.0"
@@ -77,7 +75,6 @@ func (b *backendFlags) register(fs *flag.FlagSet) {
 	fs.StringVar(&b.key, "key", "", "")
 }
 
-// apply overrides config for this run only; nothing is saved.
 func (b *backendFlags) apply(cfg *config.Config) error {
 	if b.proxy != "" {
 		cfg.Mode = config.ModeProxy
